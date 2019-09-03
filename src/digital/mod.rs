@@ -3,12 +3,12 @@
 //! 
 //!
 
-// Deprecated / infallible traits
-#[deprecated(since = "0.2.2", note = "Deprecated because the methods cannot return errors. \
-                                      Users should use the traits in digital::v2.")]
+// Infallible traits
 pub mod v1;
 
-// New / fallible traits
+// Fallible traits
+#[deprecated(since = "0.2.3", note = "Deprecated due to the name collision with v1 traits. \
+                                      Driver developers should use the traits in digital::v3.")]
 pub mod v2;
 
 // New fallible traits
@@ -27,6 +27,5 @@ pub mod v2_compat;
 pub mod v3_compat;
 
 // Re-export old traits so this isn't a breaking change
-#[allow(deprecated)]
 pub use self::v1::*;
 

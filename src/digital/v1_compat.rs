@@ -35,8 +35,8 @@
 //! 
 
 
-#[allow(deprecated)]
 use super::v1;
+#[allow(deprecated)]
 use super::v2;
 
 /// Wrapper to allow fallible `v2::OutputPin` traits to be converted to `v1::OutputPin` traits
@@ -44,6 +44,7 @@ pub struct OldOutputPin<T> {
     pin: T,
 }
 
+#[allow(deprecated)]
 impl <T, E> OldOutputPin<T>
 where
     T: v2::OutputPin<Error=E>,
@@ -61,6 +62,7 @@ where
     }
 }
 
+#[allow(deprecated)]
 impl <T, E> From<T> for OldOutputPin<T>
 where
     T: v2::OutputPin<Error=E>,
@@ -114,6 +116,7 @@ pub struct OldInputPin<T> {
 }
 
 #[cfg(feature = "unproven")]
+#[allow(deprecated)]
 impl <T, E> OldInputPin<T>
 where
     T: v2::OutputPin<Error=E>,
@@ -127,6 +130,7 @@ where
 }
 
 #[cfg(feature = "unproven")]
+#[allow(deprecated)]
 impl <T, E> From<T> for OldInputPin<T>
 where
     T: v2::InputPin<Error=E>,

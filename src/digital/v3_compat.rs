@@ -66,6 +66,7 @@ impl<T> v3::StatefulOutputPin for T where T: v2::StatefulOutputPin
 }
 
 #[cfg(feature = "unproven")]
+#[allow(deprecated)]
 impl<T> v3::toggleable::Default for T where T: v2::toggleable::Default {}
 
 /// Implementation of fallible `v3::InputPin` for `v2::InputPin` digital traits

@@ -32,8 +32,8 @@
 //! ```
 //! 
 
-#[allow(deprecated)]
 use super::v1;
+#[allow(deprecated)]
 use super::v2;
 
 /// Implementation of fallible `v2::OutputPin` for `v1::OutputPin` traits
