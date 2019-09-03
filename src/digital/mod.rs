@@ -11,6 +11,8 @@ pub mod v1;
 // New / fallible traits
 pub mod v2;
 
+pub mod v3;
+
 // v2 -> v1 compatibility wrappers
 // These require explicit casts from v2 -> v1
 pub mod v1_compat;
@@ -18,6 +20,8 @@ pub mod v1_compat;
 // v1 -> v2 compatibility shims
 // These are implicit over v1 implementations
 pub mod v2_compat;
+
+pub mod v3_compat;
 
 // Re-export old traits so this isn't a breaking change
 #[allow(deprecated)]
