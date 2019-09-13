@@ -161,10 +161,10 @@ mod tests {
     fn v3_v1_output_state() {
         let mut o = OldOutputPinImpl{state: false};
 
-        v3::OutputPin::set_high(&mut o).unwrap();
+        v3::OutputPin::try_set_high(&mut o).unwrap();
         assert_eq!(o.state, true);
 
-        v3::OutputPin::set_low(&mut o).unwrap();
+        v3::OutputPin::try_set_low(&mut o).unwrap();
         assert_eq!(o.state, false);
     }
 
@@ -210,7 +210,7 @@ mod tests {
     fn v3_v1_input_state() {
         let mut i = OldInputPinImpl{state: false};
 
-        assert_eq!(v3::InputPin::is_high(&mut i).unwrap(), false);
-        assert_eq!(v3::InputPin::is_low(&mut i).unwrap(), true);
+        assert_eq!(v3::InputPin::try_is_high(&mut i).unwrap(), false);
+        assert_eq!(v3::InputPin::try_is_low(&mut i).unwrap(), true);
     }
 }

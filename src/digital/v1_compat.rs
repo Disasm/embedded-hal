@@ -36,10 +36,9 @@
 
 
 use super::v1;
-#[allow(deprecated)]
-use super::v2;
+use super::v3;
 
-/// Wrapper to allow fallible `v2::OutputPin` traits to be converted to `v1::OutputPin` traits
+/// Wrapper to allow fallible `v3::OutputPin` traits to be converted to `v1::OutputPin` traits
 pub struct OldOutputPin<T> {
     pin: T,
 }
@@ -47,15 +46,15 @@ pub struct OldOutputPin<T> {
 #[allow(deprecated)]
 impl <T, E> OldOutputPin<T>
 where
-    T: v2::OutputPin<Error=E>,
+    T: v3::OutputPin<Error=E>,
     E: core::fmt::Debug,
 {
-    /// Create a new OldOutputPin wrapper around a `v2::OutputPin`
+    /// Create a new OldOutputPin wrapper around a `v3::OutputPin`
     pub fn new(pin: T) -> Self {
         Self{pin}
     }
 
-    /// Fetch a reference to the inner `v2::OutputPin` impl
+    /// Fetch a reference to the inner `v3::OutputPin` impl
     #[cfg(test)]
     fn inner(&self) -> &T {
         &self.pin
@@ -65,7 +64,7 @@ where
 #[allow(deprecated)]
 impl <T, E> From<T> for OldOutputPin<T>
 where
-    T: v2::OutputPin<Error=E>,
+    T: v3::OutputPin<Error=E>,
     E: core::fmt::Debug,
 {
     fn from(pin: T) -> Self {
@@ -73,42 +72,48 @@ where
     }
 }
 
-/// Implementation of `v1::OutputPin` trait for fallible `v2::OutputPin` output pins
+/// Implementation of `v1::OutputPin` trait for fallible `v3::OutputPin` output pins
 /// where errors will panic.
 #[allow(deprecated)]
 impl <T, E> v1::OutputPin for OldOutputPin<T>
 where
-    T: v2::OutputPin<Error=E>,
+    T: v3::OutputPin<Error=E>,
     E: core::fmt::Debug,
 {
     fn set_low(&mut self) {
-        self.pin.set_low().unwrap()
+        self.pin.try_set_low().unwrap()
     }
 
     fn set_high(&mut self) {
-        self.pin.set_high().unwrap()
+        self.pin.try_set_high().unwrap()
     }
 }
 
-/// Implementation of `v1::StatefulOutputPin` trait for `v2::StatefulOutputPin` fallible pins
+/// Implementation of `v1::StatefulOutputPin` trait for `v3::StatefulOutputPin` fallible pins
 /// where errors will panic.
 #[cfg(feature = "unproven")]
 #[allow(deprecated)]
 impl <T, E> v1::StatefulOutputPin for OldOutputPin<T> 
 where
-    T: v2::StatefulOutputPin<Error=E>,
+    T: v3::StatefulOutputPin<Error=E>,
     E: core::fmt::Debug,
 {
     fn is_set_low(&self) -> bool {
-        self.pin.is_set_low().unwrap()
+        self.pin.try_is_set_low().unwrap()
     }
 
     fn is_set_high(&self) -> bool {
-        self.pin.is_set_high().unwrap()
+        self.pin.try_is_set_high().unwrap()
     }
 }
 
-/// Wrapper to allow fallible `v2::InputPin` traits to be converted to `v1::InputPin` traits
+impl<T, E> v1::toggleable::Default for OldOutputPin<T>
+where
+    T: v3::toggleable::Default<Error=E>,
+    E: core::fmt::Debug
+{ }
+
+/// Wrapper to allow fallible `v3::InputPin` traits to be converted to `v1::InputPin` traits
 /// where errors will panic.
 #[cfg(feature = "unproven")]
 pub struct OldInputPin<T> {
@@ -119,10 +124,10 @@ pub struct OldInputPin<T> {
 #[allow(deprecated)]
 impl <T, E> OldInputPin<T>
 where
-    T: v2::OutputPin<Error=E>,
+    T: v3::OutputPin<Error=E>,
     E: core::fmt::Debug,
 {
-    /// Create an `OldInputPin` wrapper around a `v2::InputPin`.
+    /// Create an `OldInputPin` wrapper around a `v3::InputPin`.
     pub fn new(pin: T) -> Self {
         Self{pin}
     }
@@ -133,7 +138,7 @@ where
 #[allow(deprecated)]
 impl <T, E> From<T> for OldInputPin<T>
 where
-    T: v2::InputPin<Error=E>,
+    T: v3::InputPin<Error=E>,
     E: core::fmt::Debug,
 {
     fn from(pin: T) -> Self {
@@ -141,26 +146,25 @@ where
     }
 }
 
-/// Implementation of `v1::InputPin` trait for `v2::InputPin` fallible pins
+/// Implementation of `v1::InputPin` trait for `v3::InputPin` fallible pins
 /// where errors will panic.
 #[cfg(feature = "unproven")]
 #[allow(deprecated)]
 impl <T, E> v1::InputPin for OldInputPin<T>
 where
-    T: v2::InputPin<Error=E>,
+    T: v3::InputPin<Error=E>,
     E: core::fmt::Debug,
 {
     fn is_low(&self) -> bool {
-        self.pin.is_low().unwrap()
+        self.pin.try_is_low().unwrap()
     }
 
     fn is_high(&self) -> bool {
-        self.pin.is_high().unwrap()
+        self.pin.try_is_high().unwrap()
     }
 }
 
 #[cfg(test)]
-#[allow(deprecated)]
 mod tests {
     use super::*;
 

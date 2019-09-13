@@ -35,6 +35,7 @@
 use super::v1;
 #[allow(deprecated)]
 use super::v2;
+use super::v3;
 
 /// Implementation of fallible `v2::OutputPin` for `v1::OutputPin` traits
 #[allow(deprecated)]
@@ -93,60 +94,169 @@ where
      }
 }
 
+/// Wrapper to allow fallible `v3::OutputPin` traits to be converted to `v2::OutputPin` traits
+pub struct V2OutputPin<T> {
+    pin: T,
+}
+
+#[allow(deprecated)]
+impl<T> V2OutputPin<T> where T: v3::OutputPin
+{
+    /// Create a new OldOutputPin wrapper around a `v2::OutputPin`
+    pub fn new(pin: T) -> Self {
+        Self{pin}
+    }
+
+    /// Fetch a reference to the inner `v2::OutputPin` impl
+    #[cfg(test)]
+    fn inner(&self) -> &T {
+        &self.pin
+    }
+}
+
+#[allow(deprecated)]
+impl<T> From<T> for V2OutputPin<T> where T: v3::OutputPin
+{
+    fn from(pin: T) -> Self {
+        V2OutputPin {pin}
+    }
+}
+
+/// Implementation of `v2::OutputPin` trait for fallible `v3::OutputPin` output pins
+/// where errors will panic.
+#[allow(deprecated)]
+impl<T> v2::OutputPin for V2OutputPin<T> where T: v3::OutputPin
+{
+    type Error = T::Error;
+
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        self.pin.try_set_low()
+    }
+
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        self.pin.try_set_high()
+    }
+}
+
+/// Implementation of `v2::StatefulOutputPin` trait for `v3::StatefulOutputPin` pins
+#[cfg(feature = "unproven")]
+#[allow(deprecated)]
+impl<T> v2::StatefulOutputPin for V2OutputPin<T> where T: v3::StatefulOutputPin,
+{
+    fn is_set_high(&self) -> Result<bool, Self::Error> {
+        self.pin.try_is_set_high()
+    }
+
+    fn is_set_low(&self) -> Result<bool, Self::Error> {
+        self.pin.try_is_set_low()
+    }
+}
+
+#[allow(deprecated)]
+impl<T, E> v2::toggleable::Default for V2OutputPin<T>
+where
+    T: v3::toggleable::Default<Error=E>,
+    E: core::fmt::Debug
+{ }
+
+/// Wrapper to allow `v3::InputPin` traits to be converted to `v2::InputPin` traits
+#[cfg(feature = "unproven")]
+pub struct V2InputPin<T> {
+    pin: T,
+}
+
+#[cfg(feature = "unproven")]
+#[allow(deprecated)]
+impl<T> V2InputPin<T> where T: v3::InputPin
+{
+    /// Create an `OldInputPin` wrapper around a `v3::InputPin`.
+    pub fn new(pin: T) -> Self {
+        Self{pin}
+    }
+}
+
+#[cfg(feature = "unproven")]
+#[allow(deprecated)]
+impl <T> From<T> for V2InputPin<T> where T: v3::InputPin
+{
+    fn from(pin: T) -> Self {
+        V2InputPin {pin}
+    }
+}
+
+/// Implementation of `v2::InputPin` trait for `v3::InputPin` pins
+#[cfg(feature = "unproven")]
+#[allow(deprecated)]
+impl<T> v2::InputPin for V2InputPin<T> where T: v3::InputPin
+{
+    type Error = T::Error;
+
+    fn is_high(&self) -> Result<bool, Self::Error> {
+        self.pin.try_is_high()
+    }
+
+    fn is_low(&self) -> Result<bool, Self::Error> {
+        self.pin.try_is_low()
+    }
+}
+
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
 
-    #[allow(deprecated)]
-    use crate::digital::v1;
     use crate::digital::v2;
+    use crate::digital::v3;
 
-    #[allow(deprecated)]
-    struct OldOutputPinImpl { 
+    struct OldOutputPinImpl {
         state: bool
     }
 
-    #[allow(deprecated)]
-    impl v1::OutputPin for OldOutputPinImpl {
-        fn set_low(&mut self) {
+    impl v2::OutputPin for OldOutputPinImpl {
+        type Error = ();
+
+        fn set_low(&mut self) -> Result<(), ()> {
             self.state = false;
+            Ok(())
         }
-        fn set_high(&mut self) {
+        fn set_high(&mut self) -> Result<(), ()> {
             self.state = true;
+            Ok(())
         }
     }
 
     #[allow(deprecated)]
-    impl v1::StatefulOutputPin for OldOutputPinImpl {
-        fn is_set_low(&self) -> bool {
-            self.state == false
+    impl v2::StatefulOutputPin for OldOutputPinImpl {
+        fn is_set_high(&self) -> Result<bool, ()> {
+            Ok(self.state == true)
         }
 
-        fn is_set_high(&self) -> bool {
-            self.state == true
+        fn is_set_low(&self) -> Result<bool, ()> {
+            Ok(self.state == false)
         }
     }
 
-    #[allow(deprecated)]
-    impl v1::toggleable::Default for OldOutputPinImpl {}
+    impl v2::toggleable::Default for OldOutputPinImpl {}
 
-    struct NewOutputPinConsumer<T: v2::OutputPin> {
+    #[allow(deprecated)]
+    struct NewOutputPinConsumer<T: v3::OutputPin> {
         _pin: T,
     }
 
-    impl <T>NewOutputPinConsumer<T> 
-    where T: v2::OutputPin {
+    #[allow(deprecated)]
+    impl<T: v3::OutputPin> NewOutputPinConsumer<T>
+    {
         pub fn new(pin: T) -> NewOutputPinConsumer<T> {
             NewOutputPinConsumer{ _pin: pin }
         }
     }
 
-    struct NewToggleablePinConsumer<T: v2::ToggleableOutputPin> {
+    struct NewToggleablePinConsumer<T: v3::ToggleableOutputPin> {
         _pin: T,
     }
 
     impl<T> NewToggleablePinConsumer<T>
     where
-        T: v2::ToggleableOutputPin,
+        T: v3::ToggleableOutputPin,
     {
         pub fn new(pin: T) -> NewToggleablePinConsumer<T> {
             NewToggleablePinConsumer { _pin: pin }
@@ -154,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn v2_v1_toggleable_implicit() {
+    fn v3_v2_toggleable_implicit() {
         let i = OldOutputPinImpl { state: false };
         let _c = NewToggleablePinConsumer::new(i);
     }
@@ -166,6 +276,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn v2_v1_output_state() {
         let mut o = OldOutputPinImpl{state: false};
         
@@ -184,21 +295,25 @@ mod tests {
 
     #[cfg(feature = "unproven")]
     #[allow(deprecated)]
-    impl v1::InputPin for OldInputPinImpl {
-        fn is_low(&self) -> bool {
-            !self.state
+    impl v2::InputPin for OldInputPinImpl {
+        type Error = ();
+
+        fn is_high(&self) -> Result<bool, ()> {
+            Ok(self.state)
         }
-        fn is_high(&self) -> bool {
-            self.state
+        fn is_low(&self) -> Result<bool, ()> {
+            Ok(!self.state)
         }
     }
 
     #[cfg(feature = "unproven")]
+    #[allow(deprecated)]
     struct NewInputPinConsumer<T: v2::InputPin> {
         _pin: T,
     }
 
     #[cfg(feature = "unproven")]
+    #[allow(deprecated)]
     impl <T>NewInputPinConsumer<T> 
     where T: v2::InputPin {
         pub fn new(pin: T) -> NewInputPinConsumer<T> {
